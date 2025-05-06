@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import { useAuth } from "@/hooks/useAuthContext";
+import { useFirebaseAuth } from "@/firebase/FirebaseAuthProvider";
 import { ShoppingCart, User, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useMobile } from "@/hooks/use-mobile";
@@ -13,7 +13,7 @@ interface HeaderProps {
 export default function Header({ onCartClick, cartItemsCount }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const isMobile = useMobile();
-  const { user } = useAuth();
+  const { currentUser, isAdmin } = useFirebaseAuth();
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -71,11 +71,11 @@ export default function Header({ onCartClick, cartItemsCount }: HeaderProps) {
             <Menu className="h-5 w-5" />
           </Button>
           
-          {user ? (
-            <Link href="/admin">
+          {currentUser ? (
+            <Link href={isAdmin ? "/admin" : "/profile"}>
               <Button variant="default" className="hidden md:flex items-center gap-1 bg-foreground hover:bg-neutral-700">
                 <User className="h-4 w-4" />
-                <span>Admin</span>
+                <span>{isAdmin ? "Admin" : "Profile"}</span>
               </Button>
             </Link>
           ) : (
@@ -121,11 +121,11 @@ export default function Header({ onCartClick, cartItemsCount }: HeaderProps) {
             Contact
           </a>
           
-          {user ? (
-            <Link href="/admin">
+          {currentUser ? (
+            <Link href={isAdmin ? "/admin" : "/profile"}>
               <button className="flex items-center space-x-1 text-foreground py-2 w-full text-left">
                 <User className="h-4 w-4" />
-                <span>Admin</span>
+                <span>{isAdmin ? "Admin" : "Profile"}</span>
               </button>
             </Link>
           ) : (
