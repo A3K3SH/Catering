@@ -1,0 +1,2 @@
+Set-ExecutionPolicy RemoteSigned
+npm install -g vercel
