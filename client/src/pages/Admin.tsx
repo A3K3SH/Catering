@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useAuth } from "@/hooks/useAuthContext";
 import { useLocation } from "wouter";
+import { useFirebaseAuth } from "@/firebase/FirebaseAuthProvider";
 import ProductList from "@/components/admin/ProductList";
 import ProductForm from "@/components/admin/ProductForm";
 import CategoryForm from "@/components/admin/CategoryForm";
@@ -20,23 +20,36 @@ import {
 
 export default function Admin() {
   const [location, navigate] = useLocation();
-  const { user, logout, isLoading } = useAuth();
+  const { currentUser, logout, loading, isAdmin } = useFirebaseAuth();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [showAddProduct, setShowAddProduct] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   // Redirect to login if not authenticated or not admin
-  if (!isLoading && !user) {
+  if (!loading && (!currentUser || !isAdmin)) {
     navigate("/login");
     return null;
   }
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
   }
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await logout();
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
 
   return (
     <>
@@ -49,10 +62,15 @@ export default function Admin() {
           <div className="container mx-auto px-4 flex justify-between items-center">
             <h1 className="font-accent text-2xl font-bold text-primary">Taste of India Admin</h1>
             <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-600">Welcome, Admin</span>
-              <Button variant="outline" onClick={logout} className="flex items-center gap-2">
+              <span className="text-sm text-gray-600">Welcome, {currentUser?.displayName || currentUser?.email || 'Admin'}</span>
+              <Button 
+                variant="outline" 
+                onClick={handleLogout} 
+                className="flex items-center gap-2"
+                disabled={isLoggingOut}
+              >
                 <LogOut size={16} />
-                <span>Logout</span>
+                <span>{isLoggingOut ? "Logging out..." : "Logout"}</span>
               </Button>
             </div>
           </div>
